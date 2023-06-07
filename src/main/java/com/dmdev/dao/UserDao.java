@@ -154,7 +154,7 @@ public class UserDao implements Dao<Integer, User> {
         preparedStatement.setObject(2, entity.getBirthday());
         preparedStatement.setObject(3, entity.getEmail());
         preparedStatement.setObject(4, entity.getPassword());
-        preparedStatement.setObject(5, entity.getRole() != null ? entity.getRole().name() : null);
-        preparedStatement.setObject(6, entity.getGender() != null ? entity.getGender().name() : null);
+        preparedStatement.setObject(5, entity.getRole().name());
+        preparedStatement.setObject(6, entity.getGender().name());
     }
 }
