@@ -6,6 +6,7 @@ import com.dmdev.dto.UserDto;
 import com.dmdev.entity.Gender;
 import com.dmdev.entity.Role;
 import com.dmdev.entity.User;
+import com.dmdev.exception.ValidationException;
 import com.dmdev.integration.IntegrationTestBase;
 import com.dmdev.mapper.CreateUserMapper;
 import com.dmdev.mapper.UserMapper;
@@ -13,7 +14,6 @@ import com.dmdev.validator.CreateUserValidator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -21,13 +21,13 @@ import java.time.LocalDate;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @ExtendWith(MockitoExtension.class)
 class UserServiceIT extends IntegrationTestBase {
 
     @Spy
     private UserDao userDao;
-    @InjectMocks
     private UserService userService;
 
     @BeforeEach
@@ -51,12 +51,29 @@ class UserServiceIT extends IntegrationTestBase {
     }
 
     @Test
+    void shouldNotLoginIfPasswordIncorrect() {
+        User user = userDao.save(buildUser("test1@gmail.com"));
+
+        Optional<UserDto> actualResult = userService.login(user.getEmail(), "dummy");
+
+        assertThat(actualResult).isEmpty();
+    }
+
+    @Test
     void create() {
         CreateUserDto createUserDto = buildCreateUserDto();
 
         UserDto actualResult = userService.create(createUserDto);
 
         assertThat(actualResult.getId()).isNotNull();
+    }
+
+    @Test
+    void shouldThrowValidationExceptionIfEntityInvalid() {
+        CreateUserDto createUserDto = CreateUserDto.builder().build();
+
+        ValidationException actualResult = assertThrows(ValidationException.class, () -> userService.create(createUserDto));
+        assertThat(actualResult.getErrors()).hasSize(3);
     }
 
     private User buildUser(String email) {
